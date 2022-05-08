@@ -1,63 +1,51 @@
 package org.example;
 
+import org.example.TestForMyProject.WorkWithApp;
 import org.junit.jupiter.api.*;
 import com.beust.jcommander.Parameter;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 /**
- * Unit test for simple App.
+ * Юнит тесты для тестирования https://www.saucedemo.com/.
  */
 
-public class AppTestForMyProject extends AbstractTestsForMyProject {
+public class AppTestForMyProject extends AbstractTestForMyProject {
 
-    // Ссылка для работы тестов:
-    static String Url = "https://www.saucedemo.com/";
+    public static int delay = 200;
 
-    // Задержка для тестов:
-    static int delay = 200;
-
-    // #MyProject_0.Открытие страницы
-    @ParameterizedTest
-    @DisplayName("#MyProject_0 Проверка страницы на доступность для открытия")
-    @Tag("openPage")
-    @Tag("#MyProject_0")
-    @Parameter
-    @ValueSource(strings = "https://www.saucedemo.com/")
-    // Пример передачи URL в качестве параметра
-    void openPage(String url) throws InterruptedException {
-        Assertions.assertTrue(goToPage(url));
+    public static int getDelay() {
+        return delay;
     }
 
     // #MyProject_1.Добавление пользователя (заблокированный и отсутствующий пользователь)
-    @ParameterizedTest
+    @Test
     @DisplayName("#MyProject_1 Добавление пользователя (заблокированный и отсутствующий пользователь)")
     @Tag("userRegistration")
     @Tag("#MyProject_1")
-    @Parameter
-    @CsvSource({"locked_out_user, secret_sauce"})
-    void userRegistration(String user, String password) throws InterruptedException {
+    void userRegistration() throws InterruptedException {
+        WorkWithApp workWithApp = new WorkWithApp(getDriver());
+        workWithApp                                // Ввод данных
+                .inputUsername("locked_out_user")
+                .inputPassword("secret_sauce")
+                .sleep(getDelay())
+                .clickLoginButton()                 // Аутентификация пользователя
+                .sleep(getDelay() * 2)
+                .clickReloadAuth();                  // Нажатие кнопки с ошибкой для сброса аутентификации
 
-        // Переход по ссылке
-        Assertions.assertTrue(goToPage(Url));
+        // Пример assertions по url
+        String resUrl = "https://www.saucedemo.com/";
+        Assertions.assertEquals(resUrl, getDriver().getCurrentUrl());
 
-        // Заполнение текстовых полей для аутентификации пользователя с использованием xPath:
-        actionClickAndInputData("//input[@placeholder='Username']", "locked_out_user");
-        actionClickAndInputData("//input[@placeholder='Password']", "secret_sauce");
+        workWithApp
+                .inputUsername("nobody")
+                .inputPassword("zero")
+                .sleep(getDelay())
+                .clickLoginButton()                // Аутентификация пользователя
+                .sleep(getDelay() * 5);
 
-        // Аутентификация пользователя
-        actionClick("//input[@value='Login']");
-        // Нажатие кнопки с ошибкой для сброса аутентификации
-        actionClick("//h3[@data-test='error']/button");
-
-        // Заполнение текстовых полей для аутентификации пользователя с использованием xPath:
-        actionClickAndInputData("//input[@placeholder='Username']", "nobody");
-        actionClickAndInputData("//input[@placeholder='Password']", "zero");
-
-        // Аутентификация пользователя
-        actionClick("//input[@value='Login']");
-        Thread.sleep(delay*3);
+        // Результат работы теста assertions по url
+        Assertions.assertEquals(resUrl, getDriver().getCurrentUrl());
     }
 
     // #MyProject_2.Регистрация пользователя и выход из витрины (низкая производительность)
@@ -67,25 +55,22 @@ public class AppTestForMyProject extends AbstractTestsForMyProject {
     @Tag("#MyProject_2")
     @Parameter
     @CsvSource({"performance_glitch_user, secret_sauce"})
-    void userRegistrationAndExit(String user, String password) throws InterruptedException{
+    void userRegistrationAndExit(String user, String password) throws InterruptedException {
+        WorkWithApp workWithApp = new WorkWithApp(getDriver());
+        workWithApp                                // Ввод данных
+                .inputUsername(user)
+                .inputPassword(password)
+                .sleep(getDelay())
+                .clickLoginButton()                 // Аутентификация пользователя
+                .sleep(getDelay())
+                .openMainMenu()                     // Открытие верхнего левого меню
+                .sleep(getDelay())
+                .loguot()                           // Выход из витрины
+                .sleep(getDelay() * 5);
 
-        // Переход по ссылке
-        Assertions.assertTrue(goToPage(Url));
-
-        // Заполнение текстовых полей для аутентификации пользователя с использованием xPath:
-        actionClickAndInputData("//input[@placeholder='Username']", user);
-        actionClickAndInputData("//input[@placeholder='Password']", password);
-
-        // Аутентификация пользователя
-        Thread.sleep(delay);
-        actionClick("//input[@value='Login']");
-
-        // Открытие верхнего левого меню
-        actionClick("//button[@id='react-burger-menu-btn']");
-        Thread.sleep(delay);
-        // Выход из аккаунта
-        actionClick("//a[contains(text(),'Logout')]");
-        Thread.sleep(delay * 3);
+        // Результат работы теста assertions по url
+        String resUrl = "https://www.saucedemo.com/";
+        Assertions.assertEquals(resUrl, getDriver().getCurrentUrl());
     }
 
     // #MyProject_3.Работа с пользовательским интерфейсом
@@ -96,71 +81,42 @@ public class AppTestForMyProject extends AbstractTestsForMyProject {
     @Parameter
     @CsvSource({"standard_user, secret_sauce"})
     void workWithUI(String user, String password) throws InterruptedException {
+        WorkWithApp workWithApp = new WorkWithApp(getDriver());
+        workWithApp                         // Ввод данных
+                .inputUsername(user)
+                .inputPassword(password)
+                .clickLoginButton()         // Аутентификация пользователя
+                .sleep(getDelay())
+                .goToFotter()               // Скролл странцы: переход в футер
+                .sleep(getDelay())
+                .openMainMenu()             // Переход в главное меню
+                .sleep(getDelay())
+                .closeMainMenu()            // Закрытие главного меню
+                .sleep(getDelay())
+                .selectFieldSort()          // Проверка доступности меню сортировки товаров на странице витрины
+                .sleep(getDelay())
+                .sortByAZ()                 // Сортировка в прямом алфавитном порядке
+                .sleep(getDelay())
+                .sortByZA()                 // Сортировка в обратном алфавитном порядке
+                .sleep(getDelay())
+                .openShoppingCart()         // Переход в корзину
+                .sleep(getDelay())
+                .closeShoppingCart()        // Выход из корзины
+                .sleep(getDelay() * 7)
+                .viewItem(4)                // Просмотр товара
+                .sleep(getDelay() * 7)
+                .backToProducts()           // Возврат к покупкам
+                .sleep(getDelay() * 3)
+                .viewItem(3)                // Просмотр товара
+                .sleep(getDelay() * 6)
+                .openShoppingCart()         // Переход в корзину
+                .openMainMenu()             // Открытие верхнего левого меню
+                .loguot()                  // Выход из витрины
+                .sleep(getDelay() * 3);
 
-        // Переход по ссылке
-        Assertions.assertTrue(goToPage(Url));
-
-        // Заполнение текстовых полей для аутентификации пользователя
-        // с использованием xPath:
-        actionClickAndInputData("//input[@placeholder='Username']", user);
-        actionClickAndInputData("//input[@placeholder='Password']", password);
-        // Аутентификация пользователя
-        actionClick("//input[@value='Login']");
-        Thread.sleep(delay);
-
-        // Скролл странцы: переход в футер
-        actionClick("//div[@id='page_wrapper']/footer/div");
-        Thread.sleep(delay);
-
-        // Переход в главное меню
-        actionClick("//button[@id='react-burger-menu-btn']");
-        Thread.sleep(delay);
-        // Закрытие главного меню
-        actionClick("//button[@id='react-burger-cross-btn']");
-        Thread.sleep(delay);
-
-        // Проверка доступности меню сортировки товаров на странице витрины
-        // Сортировка в прямом алфавитном порядке
-        actionClick("//div[@id='header_container']/div[2]/div[2]/span/select");
-        actionClick("//div[@id='header_container']/div[2]/div[2]/span/select/option[@value='az']");
-        Thread.sleep(delay);
-
-        // Сортировка в обратном алфавитном порядке
-        //checkItem("//div[@id='header_container']/div[2]/div[2]/span/select");
-        actionClick("//div[@id='header_container']/div[2]/div[2]/span/select/option[@value='za']");
-        Thread.sleep(delay);
-
-        // Переход в корзину
-        actionClick("//div[@id='shopping_cart_container']/a");
-        Thread.sleep(delay * 2);
-
-        // Выход из корзины
-        actionClick("//button[@id='continue-shopping']");
-        Thread.sleep(delay);
-
-        // Просмотр товара
-        actionClick("//a[@id='item_4_img_link']/img");
-        Thread.sleep(delay * 2);
-
-        // Возврат к покупкам
-        actionClick("//button[@id='back-to-products']");
-        Thread.sleep(delay);
-
-        // Просмотр товара
-        actionClick("//a[@id='item_3_img_link']/img");
-        Thread.sleep(delay * 2);
-
-        // Переход в коризину
-        actionClick("//div[@id='shopping_cart_container']/a");
-        Thread.sleep(delay * 2);
-
-        // Переход в главное меню
-        actionClick("//button[@id='react-burger-menu-btn']");
-        Thread.sleep(delay);
-
-        // Выход из витрины
-        actionClick("//*[@id='logout_sidebar_link']");
-        Thread.sleep(delay * 3);
+        // Результат работы теста assertions по url
+        String resUrl = "https://www.saucedemo.com/";
+        Assertions.assertEquals(resUrl, getDriver().getCurrentUrl());
     }
 
     // #MyProject_4.Сортировка товаров витрины
@@ -171,33 +127,26 @@ public class AppTestForMyProject extends AbstractTestsForMyProject {
     @Parameter
     @CsvSource({"standard_user, secret_sauce"})
     void sortItem(String user, String password) throws InterruptedException {
+        WorkWithApp workWithApp = new WorkWithApp(getDriver());
+        workWithApp                     // Ввод данных
+                .inputUsername(user)
+                .inputPassword(password)
+                .clickLoginButton()     // Аутентификация пользователя
+                .sleep(getDelay())
+                .selectFieldSort()      // Проверка доступности меню сортировки товаров на странице витрины
+                .sleep(getDelay() * 4)
+                .sortByAZ()             // Сортировка в прямом алфавитном порядке
+                .sleep(getDelay() * 4)
+                .sortByZA()             // Сортировка в обратном алфавитном порядке
+                .sleep(getDelay() * 4)
+                .sortByHilo()           // Сортировка в порядке убывания цены
+                .sleep(getDelay() * 4)
+                .sortByLohi()          // Сортировка в порядке возрастания цены
+                .sleep(getDelay() * 4);
 
-        // Переход по ссылке
-        Assertions.assertTrue(goToPage(Url));
-
-        // Заполнение текстовых полей для аутентификации пользователя
-        // с использованием xPath:
-        actionClickAndInputData("//input[@placeholder='Username']", user);
-        actionClickAndInputData("//input[@placeholder='Password']", password);
-        // Аутентификация пользователя
-        actionClick("//input[@value='Login']");
-
-        // Проверка доступности меню сортировки товаров на странице витрины
-        // Сортировка в прямом алфавитном порядке
-        actionClick("//*[@value='az']");
-        Thread.sleep(delay * 2);
-
-        // Сортировка в обратном алфавитном порядке
-        actionClick("//*[@value='za']");
-        Thread.sleep(delay * 2);
-
-        // Сортировка в порядке убывания цены
-        actionClick("//*[@value='hilo']");
-        Thread.sleep(delay * 2);
-
-        // Сортировка в порядке возрастания цены
-        actionClick("//*[@value='lohi']");
-        Thread.sleep(delay * 3);
+        // Результат работы теста assertions по url
+        String resUrl = "https://www.saucedemo.com/inventory.html";
+        Assertions.assertEquals(resUrl, getDriver().getCurrentUrl());
     }
 
     // #MyProject_5.Добавление товаров в корзину
@@ -208,73 +157,41 @@ public class AppTestForMyProject extends AbstractTestsForMyProject {
     @Parameter
     @CsvSource({"standard_user, secret_sauce"})
     void aadItemInBasket(String user, String password) throws InterruptedException {
+        WorkWithApp workWithApp = new WorkWithApp(getDriver());
+        workWithApp                     // Ввод данных
+                .inputUsername(user)
+                .inputPassword(password)
+                .clickLoginButton()     // Аутентификация пользователя
+                .sleep(getDelay() * 3)
+                .addToCartItem("sauce-labs-backpack")   // Добавление товаров витрины в корзину
+                .addToCartItem("sauce-labs-onesie")
+                .addToCartItem("sauce-labs-fleece-jacket")
+                .sleep(getDelay() * 2)
+                .openShoppingCart()     // Переход в корзину
+                .sleep(getDelay() * 4)
+                .removeItemInCart("sauce-labs-onesie")
+                .removeItemInCart("sauce-labs-backpack")
+                .continueShopping()    // Возврат к покупкам
+                .sleep(getDelay() * 3)
+                .addToCartItem("sauce-labs-bike-light")
+                .openShoppingCart()     // Переход в корзину
+                .sleep(getDelay() * 4)
+                .openMainMenu()         // Переход в главное меню
+                .sleep(getDelay() * 2)
+                .loguot()               // Выход из витрины
+                .sleep(getDelay() * 5)
+                .inputUsername(user)    // Ввод данных
+                .inputPassword(password)
+                .clickLoginButton()     // Аутентификация пользователя
+                .openShoppingCart()
+                .sleep(getDelay() * 3)
+                .removeItemInCart("sauce-labs-fleece-jacket")
+                .removeItemInCart("sauce-labs-bike-light")
+                .sleep(getDelay() * 10);
 
-        // Переход по ссылке
-        Assertions.assertTrue(goToPage(Url));
-
-        // Заполнение текстовых полей для аутентификации пользователя
-        // с использованием xPath:
-        actionClickAndInputData("//input[@placeholder='Username']", user);
-        actionClickAndInputData("//input[@placeholder='Password']", password);
-        // Аутентификация пользователя
-        actionClick("//input[@value='Login']");
-
-        // Добавление товаров витрины в корзину
-        actionClick("//*[@id='add-to-cart-sauce-labs-backpack']");
-        Thread.sleep(delay);
-
-        actionClick("//*[@id='add-to-cart-sauce-labs-onesie']");
-        Thread.sleep(delay);
-
-        actionClick("//*[@id='add-to-cart-sauce-labs-fleece-jacket']");
-        Thread.sleep(delay);
-
-        // Переход в корзину
-        actionClick("//div[@id='shopping_cart_container']/a");
-        Thread.sleep(delay);
-
-        // Удаление товаров
-        actionClick("//button[@id='remove-sauce-labs-onesie' and contains(.,'Remove')]");
-        Thread.sleep(delay * 2);
-
-        actionClick("//button[contains(.,'Remove') and @id='remove-sauce-labs-backpack']");
-        Thread.sleep(delay * 2);
-
-        // Возврат к покупкам
-        actionClick("//*[@id='continue-shopping']");
-        Thread.sleep(delay);
-
-        actionClick("//button[@id='add-to-cart-sauce-labs-bike-light']");
-        Thread.sleep(delay);
-
-        // Переход в корзину
-        actionClick("//div[@id='shopping_cart_container']/a");
-        Thread.sleep(delay * 2);
-
-        // Переход в главное меню
-        actionClick("//button[@id='react-burger-menu-btn']");
-        Thread.sleep(delay);
-
-        // Выход из витрины
-        actionClick("//*[@id='logout_sidebar_link']");
-        Thread.sleep(delay);
-
-        // Заполнение текстовых полей для аутентификации пользователя
-        // с использованием xPath:
-        actionClickAndInputData("//input[@placeholder='Username']", user);
-        actionClickAndInputData("//input[@placeholder='Password']", password);
-        // Аутентификация пользователя
-        actionClick("//input[@value='Login']");
-
-        // Переход в корзину
-        actionClick("//div[@id='shopping_cart_container']/a");
-        Thread.sleep(delay * 2);
-
-        // Удаление товаров из корзины
-        actionClick("//button[contains(.,'Remove') and @id='remove-sauce-labs-fleece-jacket']");
-        Thread.sleep(delay * 2);
-        actionClick("//button[contains(.,'Remove') and @id='remove-sauce-labs-bike-light']");
-        Thread.sleep(delay * 3);
+        // Результат работы теста assertions по url
+        String resUrl = "https://www.saucedemo.com/cart.html";
+        Assertions.assertEquals(resUrl, getDriver().getCurrentUrl());
     }
 
     // #MyProject_6.Оформление заказа
@@ -285,48 +202,35 @@ public class AppTestForMyProject extends AbstractTestsForMyProject {
     @Parameter
     @CsvSource({"standard_user, secret_sauce, Ivan, Ivanov, E77777"})
     void createOrder(String user, String password, String name, String surname, String postcode) throws InterruptedException {
+        WorkWithApp workWithApp = new WorkWithApp(getDriver());
+        workWithApp                     // Ввод данных
+                .inputUsername(user)
+                .inputPassword(password)
+                .clickLoginButton()     // Аутентификация пользователя
+                .sleep(getDelay())
+                .addToCartItem("sauce-labs-onesie")         // Добавление товаров витрины в корзину
+                .addToCartItem("sauce-labs-fleece-jacket")
+                .sleep(getDelay() * 2)
+                .openShoppingCart()                         // Переход в корзину
+                .sleep(getDelay() * 2)
+                .checkout()             // Переход к оформлению заказа
+                .sleep(getDelay() * 3)
+                .inputFirstName(name)   // Заполнить тектовые поля с информацией о новом пользователе:
+                .inputLastName(surname)
+                .inputPostCode(postcode)
+                .sleep(getDelay())
+                .continueProc()
+                .sleep(getDelay() * 5)
+                .goToFotter()           // Переход в футер: cкролл странцы
+                .finishProc()
+                .goToHeader()
+                .sleep(getDelay() * 5)
+                .backToProducts()       // Назад к покупкам
+                .sleep(getDelay() * 5);
 
-        // Переход по ссылке
-        Assertions.assertTrue(goToPage(Url));
-
-        // Заполнение текстовых полей для аутентификации пользователя
-        // с использованием xPath:
-        actionClickAndInputData("//input[@placeholder='Username']", user);
-        actionClickAndInputData("//input[@placeholder='Password']", password);
-        // Аутентификация пользователя
-        actionClick("//input[@value='Login']");
-
-        // Добавление товаров витрины в корзину
-        actionClick("//*[@id='add-to-cart-sauce-labs-onesie']");
-        Thread.sleep(delay);
-
-        actionClick("//*[@id='add-to-cart-sauce-labs-fleece-jacket']");
-        Thread.sleep(delay);
-
-        // Переход в корзину
-        actionClick("//div[@id='shopping_cart_container']/a");
-        Thread.sleep(delay * 2);
-
-        // Переход к оформлению заказа
-        actionClick("//button[@id='checkout']");
-        Thread.sleep(delay * 2);
-
-        // Заполнить тектовые поля с информацией о новом пользователе:
-        actionClickAndInputData("//input[@id='first-name']", name);
-        actionClickAndInputData("//input[@id='last-name']", surname);
-        actionClickAndInputData("//input[@id='postal-code']", postcode);
-        Thread.sleep(delay * 2);
-        actionClick("//input[@id='continue']");
-        Thread.sleep(delay * 2);
-
-        // Переход в футер: cкролл странцы
-        actionClick("//div[@id='page_wrapper']/footer/div");
-        actionClick("//button[@id='finish']");
-        actionClick("//*[@id='header_container']");
-        Thread.sleep(delay * 2);
-
-        actionClick("//button[@id='back-to-products']");
-        Thread.sleep(delay * 3);
+        // Результат работы теста assertions по url
+        String resUrl = "https://www.saucedemo.com/inventory.html";
+        Assertions.assertEquals(resUrl, getDriver().getCurrentUrl());
     }
 
     // #MyProject_7.Проверка работы кнопки главного меню "Reset App State"
@@ -337,46 +241,30 @@ public class AppTestForMyProject extends AbstractTestsForMyProject {
     @Parameter
     @CsvSource({"standard_user, secret_sauce"})
     void resetAppState(String user, String password) throws InterruptedException {
+        WorkWithApp workWithApp = new WorkWithApp(getDriver());
+        workWithApp                         // Ввод данных
+                .inputUsername(user)
+                .inputPassword(password)
+                .sleep(getDelay())
+                .clickLoginButton()         // Аутентификация пользователя
+                .openShoppingCart()         // Переход в корзину
+                .sleep(getDelay() * 3)
+                .closeShoppingCart()        // Возврат к покупкам
+                .sleep(getDelay() * 3)
+                .addToCartItem("sauce-labs-backpack")       // Добавление товаров витрины в корзину
+                .sleep(getDelay() * 3)
+                .addToCartItem("sauce-labs-onesie")
+                .sleep(getDelay() * 3)
+                .addToCartItem("sauce-labs-fleece-jacket")
+                .sleep(getDelay() * 5)
+                .openMainMenu()             // Переход в главное меню
+                .sleep(getDelay() * 5)
+                .resetUI()                  // Сброс приложения
+                .openShoppingCart()         // Переход в корзину
+                .sleep(getDelay() * 6);
 
-        // Переход по ссылке
-        Assertions.assertTrue(goToPage(Url));
-
-        // Заполнение текстовых полей для аутентификации пользователя
-        // с использованием xPath:
-        actionClickAndInputData("//input[@placeholder='Username']", user);
-        actionClickAndInputData("//input[@placeholder='Password']", password);
-        // Аутентификация пользователя
-        actionClick("//input[@value='Login']");
-
-        // Добавление товаров витрины в корзину
-        actionClick("//*[@id='add-to-cart-sauce-labs-backpack']");
-        Thread.sleep(delay);
-
-        actionClick("//*[@id='add-to-cart-sauce-labs-onesie']");
-        Thread.sleep(delay);
-
-        actionClick("//*[@id='add-to-cart-sauce-labs-fleece-jacket']");
-        Thread.sleep(delay);
-
-        // Переход в корзину
-        actionClick("//div[@id='shopping_cart_container']/a");
-        Thread.sleep(delay);
-
-        // Возврат к покупкам
-        actionClick("//*[@id='continue-shopping']");
-        Thread.sleep(delay);
-
-        // Переход в главное меню
-        actionClick("//button[@id='react-burger-menu-btn']");
-        Thread.sleep(delay);
-
-        // Сброс приложения
-        actionClick("//*[@id=\"reset_sidebar_link\"]");
-        Thread.sleep(delay * 3);
-
-        // Переход в корзину
-        actionClick("//div[@id='shopping_cart_container']/a");
-        Thread.sleep(delay);
-        Thread.sleep(delay * 3);
+        // Результат работы теста assertions по url
+        String resUrl = "https://www.saucedemo.com/cart.html";
+        Assertions.assertEquals(resUrl, getDriver().getCurrentUrl());
     }
 }
