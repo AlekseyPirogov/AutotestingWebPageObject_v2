@@ -7,7 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 /**
- * Юнит тесты для тестирования https://www.saucedemo.com/.
+ * Тесты для www.saucedemo.com
  */
 
 public class AppTestForMyProject extends AbstractTestForMyProject {

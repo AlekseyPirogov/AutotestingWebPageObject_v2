@@ -10,7 +10,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.openqa.selenium.By;
 
 /**
- * Юнит тесты для тестирования "https://www.globalsqa.com/angularJs-protractor/BankingProject/#/login".
+ * Юнит тесты для тестирования www.globalsqa.com
  */
 
 public class AppTestForCRM extends AbstractTestsForCRM {
@@ -22,8 +22,6 @@ public class AppTestForCRM extends AbstractTestsForCRM {
     }
 
     // #CRM1.1.Добавление нового пользователя в CRM (валидные данные)
-    // Пример теста с явной проверкой результата теста (логическим умножением результатов каждого из шагов на значение предыдущего шага)
-    @Order(1)
     @ParameterizedTest
     @DisplayName("#CRM1.1.Добавление нового пользователя в CRM (валидные данные)")
     @Tag("addUserInCRM")
@@ -57,8 +55,6 @@ public class AppTestForCRM extends AbstractTestsForCRM {
     }
 
     // #CRM1.2.Повторное добавление уже имеющегося пользователя пользователя в CRM (валидные данные)
-    // Пример теста с проверкой результатов теста при помощи Assertions
-    @Order(2)
     @ParameterizedTest
     @DisplayName("#CRM1.2.Повторное добавление уже имеющегося пользователя в CRM")
     @Tag("addUserInCRM")
@@ -95,7 +91,6 @@ public class AppTestForCRM extends AbstractTestsForCRM {
     }
 
     // #CRM1.3.Добавление нового пользователя в CRM (невалидные данные по каждому полей)
-    @Order(3)
     @ParameterizedTest
     @DisplayName("#CRM1.3. Добавление нового пользователя в CRM (невалидные данные по каждому из полей)")
     @Tag("addUserInCRMWithInvalidData")
@@ -119,17 +114,14 @@ public class AppTestForCRM extends AbstractTestsForCRM {
                 .inputInSearchField(name);     // Выбор поля для поиска: поиск по значению "name", просмотр переченя клиентов
 
         // Пример assertions для элемента
-        Boolean resultTest = true;
-        if (getDriver().findElement(By.xpath("//tr[contains(.,'" + name + "')]")).getText().contains(name) ||
-            getDriver().findElement(By.xpath("//tr[contains(.,'" + name + "')]")).getText().contains(surname) ||
-            getDriver().findElement(By.xpath("//tr[contains(.,'" + name + "')]")).getText().contains(postcode))
-            resultTest = false;
+        boolean resultTest = getDriver().findElement(By.xpath("//tr[contains(.,'" + name + "')]")).getText().contains(name) ||
+                             getDriver().findElement(By.xpath("//tr[contains(.,'" + name + "')]")).getText().contains(surname) ||
+                             getDriver().findElement(By.xpath("//tr[contains(.,'" + name + "')]")).getText().contains(postcode);
 
         Assertions.assertFalse(resultTest);
     }
 
     // #CRM2.Добавление банковского счета для пользователя
-    @Order(4)
     @ParameterizedTest
     @DisplayName("#CRM2.Добавление банковского счета для пользователя")
     @Tag("addAccountInCRM")
@@ -168,7 +160,6 @@ public class AppTestForCRM extends AbstractTestsForCRM {
     }
 
     // #CRM3. Удаление пользователя
-    @Order(5)
     @Test
     @Tag("delUserInCRM")
     @DisplayName("#CRM3.Удаление пользователя")
